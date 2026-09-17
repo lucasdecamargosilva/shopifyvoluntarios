@@ -1170,6 +1170,25 @@
         let userPhoto = null;
         let pixPaymentId = null;
         let selectedProductImgUrl = '';
+        let variantReferenceUrls = null;
+        let shopifyProductPromise = null;
+        async function getSelectedVariantReferences() {
+            const form = nativeBuyButton && (nativeBuyButton.form || nativeBuyButton.closest('form'));
+            const input = (form && form.querySelector('[name="id"]')) || document.querySelector('main form[action*="/cart/add"] [name="id"]');
+            const selectedId = input && input.value;
+            if (!selectedId) throw new Error('Não foi possível identificar a variante selecionada.');
+            if (!shopifyProductPromise) shopifyProductPromise = fetch(location.pathname.replace(/\/$/, '') + '.js').then(function(r) {
+                if (!r.ok) throw new Error('Falha ao consultar a variante.');
+                return r.json();
+            }).catch(function(e) { shopifyProductPromise = null; throw e; });
+            const product = await shopifyProductPromise;
+            const variant = product.variants.find(function(v) { return String(v.id) === String(selectedId); });
+            const image = variant && variant.featured_image;
+            const imageUrl = image && (typeof image === 'string' ? image : image.src);
+            // Sem associação explícita, não usa uma foto de outra cor por aproximação.
+            if (!imageUrl) throw new Error('A variante escolhida não possui uma foto vinculada.');
+            return [imageUrl.startsWith('//') ? 'https:' + imageUrl : imageUrl];
+        }
 
         // Upgrade Nuvemshop CDN URLs to 1024px version
         function upgradeImgUrl(url) {
@@ -1180,6 +1199,7 @@
         }
 
         function extractImages() {
+            if (variantReferenceUrls) return variantReferenceUrls.slice();
             const containersSelectors = '.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
             const possibleContainers = Array.from(document.querySelectorAll(containersSelectors));
             let imgEls = [];
@@ -1898,7 +1918,7 @@
                 return;
             }
 
-            const prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
+            let prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
             const prodName = getProductName();
 
             uploadStep.style.display = 'none';
@@ -1907,6 +1927,13 @@
 
             runGeneration._busy = true;
             try {
+                const correctVariantImages = await getSelectedVariantReferences();
+                // Aguarda eventual análise anterior antes de descartar referências de outra cor.
+                if (faceDetectPromise) await faceDetectPromise;
+                variantReferenceUrls = correctVariantImages;
+                selectedProductImgUrl = prodImg = correctVariantImages[0];
+                _faceUrls = [];
+                faceDetectPromise = null;
                 // Guard: re-valida telefone antes de submeter (evita whatsapp vazio)
                 const _finalNums = (phoneInput.value || '').replace(/\D/g, '');
                 if (typeof isValidBRPhone === 'function' && !isValidBRPhone(_finalNums)) {
