@@ -233,14 +233,15 @@
 /* PL: borda arredondada do modal */@media(min-width:768px){.q-card-ia,.q-card,#q-card-ia,#q-card,.q-modal-card{border-radius:16px !important;overflow:hidden;}}
         /* ── Fontes ── */
 
-        :root {
+        #q-modal-ia, .q-btn-inline-provador, .q-btn-trigger-ia {
             --c-bg: #ffffff;
-            --c-surface: #f5e8db;
+            --c-surface: #f1f3f9;
             --c-ink: #1a1a1a;
-            --c-muted: #8a7a6a;
-            --c-line: #e6d4c1;
-            --c-accent: #1a1a1a;
-            --c-brand: #ed3a8e;
+            --c-muted: #667085;
+            --c-line: #dce3ed;
+            --c-accent: #1269b0;
+            --c-brand: #1269b0;
+            --c-voluntarios-yellow: #fff12b;
             --c-danger: #cc3333;
             --font-display: inherit;
             --font-body: inherit;
@@ -337,10 +338,17 @@
         #q-header-provador h1 {
             margin: 0;
             font-family: var(--font-display);
-            font-size: 28px; letter-spacing: 4px;
+            font-size: 22px; letter-spacing: 1px;
             color: var(--c-ink); text-transform: uppercase;
-            font-weight: 400; line-height: 1;
+            font-weight: 700; line-height: 1.2;
         }
+        #q-header-provador { background: var(--c-surface); border-top: 6px solid var(--c-brand); gap: 12px; }
+        #q-header-provador .q-store-logo { display: block; width: 120px !important; height: 68px !important; max-width: 100%; object-fit: contain; }
+        #q-modal-ia .q-btn-black, #q-modal-ia .q-btn-buy-now { background: var(--c-brand); color: #fff; font-weight: 700; letter-spacing: 1px; }
+        #q-modal-ia .q-btn-black:hover:not(:disabled), #q-modal-ia .q-btn-buy-now:hover { background: #0c5592; }
+        #q-modal-ia .q-btn-black:disabled { background: #c6cdd6; color: #475467; }
+        #q-modal-ia button:focus-visible { outline: 3px solid var(--c-voluntarios-yellow); outline-offset: 3px; }
+        #q-modal-ia .q-input:focus { border-color: var(--c-brand); box-shadow: 0 0 0 3px rgba(18,105,176,.12); }
 
         /* ── Main step ── */
         #q-step-photo {
@@ -794,8 +802,8 @@
 
                     <!-- Persistent header (all steps) -->
                     <div id="q-header-provador">
+                        <img class="q-store-logo" src="https://lucasdecamargosilva.github.io/shopifyvoluntarios/logo-voluntarios.png" alt="Ótica Voluntários" width="120" height="68">
                         <h1>Provador Virtual</h1>
-                        <span style="font-size:20px;letter-spacing:3px">VOLUNTARIOS</span>
                     </div>
 
                     <!-- Main step -->
