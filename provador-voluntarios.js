@@ -168,14 +168,11 @@
         var t = el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
         return /\dx/.test(t) ? t.replace(/^em at[ée]\s*/i, '') : '';
     }
-    // Escassez determinística por produto (2..7 unidades).
-    function scarcityCount(name) {
-        var h = 5381, s = String(name || '');
-        for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
-        var FLOOR = 8, _st = 10 + (h % 4);   // estoque inicial por produto (10..13)
-            var _dn = new Date(), _df = (_dn.getHours() * 60 + _dn.getMinutes()) / 1440;
-            var _q = _st - Math.floor(_df * 5);   // cai ao longo do dia
-            return _q < FLOOR ? FLOOR : _q;        // piso 8
+    // Somente o título da seção do produto; nunca o popup de newsletter.
+    function getProductName() {
+        var heading = document.querySelector('[id^="ProductInfo-"] h1, main h1.product__title, main .product-single__title');
+        var name = heading ? (heading.textContent || '').replace(/\s+/g, ' ').trim() : '';
+        return name || (document.title || '').replace(/\s*[–|]\s*Ótica Voluntários.*$/i, '').trim();
     }
     // Nome + preço + parcelamento + escassez + selos + botão (layout igual ao Cacifé).
     function populateBuyCta() {
@@ -183,13 +180,11 @@
         if (!btn) return;
         var succ = document.getElementById('q-buy-success'); if (succ) succ.style.display = 'none';
         var price = getMainPrice();
-        var prodName = ((document.querySelector('h1.product-detail-info-name, h1') || {}).innerText || document.title || '').trim();
+        var prodName = getProductName();
         var nameEl = document.getElementById('q-result-prodname'); if (nameEl) nameEl.textContent = prodName;
         var priceEl = document.getElementById('q-result-prodprice'); if (priceEl) priceEl.textContent = price || '';
         var instEl = document.getElementById('q-result-installment'); if (instEl) { var _i = getInstallment(); instEl.textContent = _i; instEl.style.display = _i ? 'block' : 'none'; }
         var info = document.getElementById('q-result-prodinfo'); if (info && (prodName || price)) info.style.display = 'block';
-        var sc = document.getElementById('q-scarcity'), scn = document.getElementById('q-scarcity-n');
-        if (sc && scn && prodName) { scn.textContent = scarcityCount(prodName); sc.style.display = 'flex'; }
         var seals = document.getElementById('q-seals'); if (seals) seals.style.display = 'flex';
         btn.style.display = findStoreBuyBtn() ? 'flex' : 'none';
         btn.onclick = buyNow;
@@ -901,7 +896,6 @@
                                 <div class="q-result-prodname" id="q-result-prodname"></div>
                                 <div class="q-result-prodprice" id="q-result-prodprice"></div>
                                 <div class="q-result-installment" id="q-result-installment"></div>
-                                <div class="q-scarcity" id="q-scarcity" style="display:none;"><i class="ph-bold ph-fire"></i> APENAS <strong id="q-scarcity-n"></strong>&nbsp;UNIDADES RESTANTES</div>
                             </div>
                             <div class="q-seals" id="q-seals" style="display:none;">
                                 <div class="q-seal"><i class="ph-fill ph-shield-check"></i><span>Compra<br>Segura</span></div>
@@ -946,7 +940,7 @@
 
     function init() {
         // --- FILTRO DE CATEGORIA (HAT) ---
-        const productNameNormalized = (document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title).toUpperCase();
+        const productNameNormalized = getProductName().toUpperCase();
         if (productNameNormalized.includes('HAT')) {
             return;
         }
@@ -1088,7 +1082,7 @@
             window.__plBtnSrc = 'carrinho';
             e.preventDefault();
             e.stopPropagation();
-            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+            const prodName = getProductName();
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
@@ -1426,7 +1420,7 @@
                 e.preventDefault();
                 e.stopPropagation();
             }
-            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+            const prodName = getProductName();
             applyProduct(detectProduct(prodName));
             populateImageSelector();
             openModal();
@@ -1905,7 +1899,7 @@
             }
 
             const prodImg = selectedProductImgUrl || (document.querySelector('meta[property="og:image"]')?.content || '');
-            const prodName = document.querySelector('h1.product__title,.product-single__title,h1')?.innerText || document.title;
+            const prodName = getProductName();
 
             uploadStep.style.display = 'none';
             document.getElementById('q-loading-box').style.display = 'flex';
