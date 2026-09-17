@@ -1066,10 +1066,12 @@
                 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'text-transform'].forEach(function (property) {
                 inlineBtn.style.setProperty(property, nativeStyle.getPropertyValue(property), 'important');
             });
-            const compactHeight = Math.max(44, Math.round(nativeBuyButton.getBoundingClientRect().height * 0.8));
+            const compactHeight = Math.max(44, Math.round(nativeBuyButton.getBoundingClientRect().height));
             inlineBtn.style.setProperty('height', compactHeight + 'px', 'important');
             inlineBtn.style.setProperty('min-height', '0', 'important');
             inlineBtn.style.setProperty('width', '100%', 'important');
+            inlineBtn.style.setProperty('max-width', nativeBuyButton.getBoundingClientRect().width + 'px', 'important');
+            inlineBtn.style.setProperty('box-sizing', 'border-box', 'important');
             inlineBtn.style.setProperty('margin-bottom', '8px', 'important');
         }
         window.addEventListener('resize', syncInlineButtonShape);
@@ -1090,7 +1092,7 @@
             if (inlineBtn.isConnected) return true;
 
             const buyBtn = document.querySelector([
-                '.product-form__submit',
+                'button.product-form__submit[name="add"]',
                 'product-form form[action*="/cart/add"] button[type="submit"]',
                 'form[action*="/cart/add"] button[name="add"]',
                 'form[action*="/cart/add"] [type="submit"]',
@@ -1104,10 +1106,8 @@
 
             if (buyBtn && buyBtn.parentNode) {
                 nativeBuyButton = buyBtn;
-                // No Dawn e derivados, mantém provador e comprar no mesmo grupo visual.
-                const buttons = buyBtn.closest('.product-form__buttons');
-                if (buttons) buttons.insertBefore(inlineBtn, buttons.firstChild);
-                else buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
+                // Insere diretamente antes do botão, nunca antes da quantidade.
+                buyBtn.parentNode.insertBefore(inlineBtn, buyBtn);
                 syncInlineButtonShape();
                 if (typeof ResizeObserver !== 'undefined') {
                     new ResizeObserver(syncInlineButtonShape).observe(buyBtn);
