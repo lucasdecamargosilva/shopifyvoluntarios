@@ -1470,7 +1470,69 @@
         };
 
         // Camera / gallery buttons
-        document.getElementById('q-btn-camera').onclick = function() { cameraInput.click(); };
+        // Desktop: "Tirar foto" abre a WEBCAM (o capture do input só funciona no celular).
+        // Celular (ou webcam negada/indisponível): segue no input nativo.
+        function _plIsDesktop() {
+            try { return !(window.matchMedia && matchMedia('(pointer: coarse)').matches) && !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); } catch (_) { return false; }
+        }
+        function _plOpenWebcam() {
+            if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { cameraInput.click(); return; }
+            if (!document.getElementById('q-cam-css')) {
+                const st = document.createElement('style'); st.id = 'q-cam-css';
+                st.textContent = ''
+                  + '.q-cam-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(10,12,16,.82);display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit}'
+                  + '.q-cam-box{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:12px}'
+                  + '.q-cam-title{font-size:15px;font-weight:700;color:#1a1a1a;text-align:center;margin:2px 0 0}'
+                  + '.q-cam-hint{font-size:12.5px;color:#667085;text-align:center;margin:0}'
+                  + '.q-cam-stage{position:relative;width:100%;aspect-ratio:3/4;max-height:62vh;background:#111;border-radius:12px;overflow:hidden}'
+                  + '.q-cam-stage video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}'
+                  + '.q-cam-guide{position:absolute;left:50%;top:46%;width:58%;height:62%;transform:translate(-50%,-50%);border:2px dashed rgba(255,255,255,.7);border-radius:50%/42%;pointer-events:none}'
+                  + '.q-cam-err{color:#fff;font-size:13px;text-align:center;padding:24px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center}'
+                  + '.q-cam-acts{display:flex;gap:8px}'
+                  + '.q-cam-btn{flex:1;border:1px solid #dce3ed;background:#fff;color:#1a1a1a;border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}'
+                  + '.q-cam-btn.ok{background:var(--c-accent,#1269b0);border-color:transparent;color:#fff}'
+                  + '.q-cam-btn:disabled{opacity:.5;cursor:default}';
+                document.head.appendChild(st);
+            }
+            const ov = document.createElement('div'); ov.className = 'q-cam-ov';
+            ov.innerHTML = '<div class="q-cam-box" role="dialog" aria-modal="true">'
+              + '<p class="q-cam-title">Tire sua foto</p>'
+              + '<p class="q-cam-hint">Rosto de frente, bem iluminado, sem óculos.</p>'
+              + '<div class="q-cam-stage"><video autoplay playsinline muted></video><div class="q-cam-guide"></div></div>'
+              + '<div class="q-cam-acts"><button type="button" class="q-cam-btn" data-cam-cancel>Cancelar</button>'
+              + '<button type="button" class="q-cam-btn ok" data-cam-shot disabled><i class="ph ph-camera"></i> Tirar foto</button></div>'
+              + '</div>';
+            document.body.appendChild(ov);
+            const video = ov.querySelector('video'), shot = ov.querySelector('[data-cam-shot]');
+            let stream = null;
+            const close = () => { try { stream && stream.getTracks().forEach(t => t.stop()); } catch (_) {} ov.remove(); document.removeEventListener('keydown', onKey); };
+            const onKey = e => { if (e.key === 'Escape') close(); };
+            document.addEventListener('keydown', onKey);
+            ov.querySelector('[data-cam-cancel]').onclick = close;
+            ov.addEventListener('click', e => { if (e.target === ov) close(); });
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false })
+                .then(s => { stream = s; video.srcObject = s; shot.disabled = false; })
+                .catch(() => {
+                    const stage = ov.querySelector('.q-cam-stage');
+                    stage.innerHTML = '<div class="q-cam-err">Não conseguimos abrir a câmera. Libere o acesso no navegador ou envie uma foto da galeria.</div>';
+                    shot.innerHTML = '<i class="ph ph-image"></i> Enviar da galeria'; shot.disabled = false;
+                    shot.onclick = () => { close(); galleryInput.click(); };
+                });
+            shot.onclick = () => {
+                if (!video.videoWidth) return;
+                const c = document.createElement('canvas');
+                c.width = video.videoWidth; c.height = video.videoHeight;
+                const ctx = c.getContext('2d');
+                ctx.translate(c.width, 0); ctx.scale(-1, 1); // salva igual ao que a pessoa viu (espelhado)
+                ctx.drawImage(video, 0, 0, c.width, c.height);
+                c.toBlob(blob => {
+                    if (!blob) return;
+                    close();
+                    handlePhotoSelected(new File([blob], 'webcam.jpg', { type: 'image/jpeg' }));
+                }, 'image/jpeg', 0.92);
+            };
+        }
+        document.getElementById('q-btn-camera').onclick = function() { if (_plIsDesktop()) _plOpenWebcam(); else cameraInput.click(); };
         document.getElementById('q-btn-gallery').onclick = function() { galleryInput.click(); };
         document.getElementById('q-face-frame').onclick = function() { galleryInput.click(); };
 
