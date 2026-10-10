@@ -1726,7 +1726,7 @@
 
                         <h2>Prova Extra</h2>
 
-                        <p class="q-pix-subtitle">Limite de 4 provas atingido.<br>Pague R$1 via PIX para mais uma:</p>
+                        <p class="q-pix-subtitle">Limite de provas de hoje atingido.<br>Pague R$1 via PIX para mais uma:</p>
 
                         <p style="font-size: 11px; color: var(--c-muted); margin: 8px 0 0; line-height: 1.5; text-align: center;">&#8505;&#65039; Cobran&#231;a feita pela Provou Levou, n&#227;o pela loja</p>
 
@@ -3404,7 +3404,7 @@
 
                 } else {
 
-                    _els.forEach(el => { el.textContent = 'Limite de 4 provas atingido. Volte amanhã.'; el.classList.add('is-warn'); });
+                    _els.forEach(el => { el.textContent = 'Limite de provas de hoje atingido. Volte amanhã.'; el.classList.add('is-warn'); });
 
                 }
 
@@ -4144,7 +4144,7 @@ const fd = new FormData();
 
                         try { document.getElementById('q-loading-box').style.display = 'none'; } catch (_) {}
 
-                        alert('Você atingiu o limite de 4 provas hoje. Volte amanhã.'); try { uploadStep.style.display = 'flex'; genBtn.disabled = false; } catch (_) {}
+                        alert('Você atingiu o limite de provas de hoje. Volte amanhã.'); try { uploadStep.style.display = 'flex'; genBtn.disabled = false; } catch (_) {}
 
                         return;
 
@@ -4296,7 +4296,7 @@ const fd = new FormData();
 
                     genBtn.disabled = false;
 
-                    alert('Você atingiu o limite de 4 provas hoje. Volte amanhã.'); try { uploadStep.style.display = 'flex'; genBtn.disabled = false; } catch (_) {}
+                    alert('Você atingiu o limite de provas de hoje. Volte amanhã.'); try { uploadStep.style.display = 'flex'; genBtn.disabled = false; } catch (_) {}
 
                     return;
 
